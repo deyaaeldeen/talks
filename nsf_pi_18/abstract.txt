@@ -1,0 +1,26 @@
+Title
+
+  Challenges and Progress Toward Efficient Gradual Typing
+
+Abstract
+
+  Mixing static and dynamic type checking in the same language is
+  catching on, with the TypeScript and Flow variants of JavaScript,
+  the MyPy and Reticulated variants of Python, the Strongtalk and
+  Gradualtalk variants of Smalltalk, as well as Typed Racket, Typed
+  Clojure, and Perl 6. The gradual typing approach to such mixing
+  seeks to protect the statically typed code from the dynamically
+  typed code, allowing compilers to leverage type information when
+  optimizing the static code. Unfortunately, ensuring soundness
+  requires runtime checking at the boundaries of typed and untyped
+  code, and the cost of this checking can drown out the performance
+  benefits of optimization.  For example, in Typed Racket, some
+  partially typed programs are 1000X slower than the untyped or fully
+  typed version of the same program. But all is not lost! In this talk
+  I present the results of ongoing research to tame the runtime
+  overheads of gradual typing in the context of a prototype compiler,
+  named Grift, that we are developing at Indiana University.
+  
+
+LocalWords:  TypeScript MyPy Strongtalk Gradualtalk Smalltalk Clojure
+LocalWords:  runtime untyped Grift
