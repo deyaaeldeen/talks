@@ -197,13 +197,32 @@ moredelim=[is][\color{blue}]{~}{~},
 }
 \lstset{style=basic}
 
+\newcommand{\lstsetgrift}{
+  \lstset{%
+    language=Lisp,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\ttfamily\bfseries\small,
+    columns=flexible,
+    aboveskip=\smallskipamount,
+    belowskip=\smallskipamount,
+    xleftmargin=2pt,
+    escapeinside={/+}{+/},
+    mathescape=true,
+    morekeywords=[1]{define,lambda,if,begin,letrec,let,let*,values,:,repeat,then,else,return,and,time,box,ref,unbox,box,ann},
+    literate=
+    {+}{{\textsf{+}}}1
+    {-}{{\textsf{-}}}1
+    {=>}{{$\rightarrow\;$}}2
+    {lambda}{{$\boldsymbol{\lambda}$}}1
+  }
+}%%
+
 \garamond
 
-\title[Gradual Typing]{Challenges and Progress Toward Efficient Gradual Typing}
-\author{Jeremy G. Siek \\
- Indiana University, Bloomington
-}
-\date{}
+\title[Sound Gradual Typing]{Toward Efficient Sound Gradual Typing}
+\author{Deyaaeldeen Almahallawi}
+\institute[IU]{ Indiana University Bloomington}
+\date[\today]{\today \\ \vspace{1cm} Joint work with Andre Kuhlenschmidt and Jeremy Siek}
 %% \institute{\normalsize 
 %%  Indiana University, Bloomington
 %% }
@@ -219,35 +238,6 @@ moredelim=[is][\color{blue}]{~}{~},
 %===============================================================================
 \frame{
 \titlepage
-
-%% \vspace{-40pt}
-%% \begin{center}
-%% Dynamic Languages Symposium  \\
-%% October 2017 
-%% \end{center}
-
-\vspace{-40pt}
-\begin{tabular}{ccc}
-\begin{minipage}{0.25\textwidth}
-\includegraphics[height=1.1in]{andre} 
-\end{minipage}
-&
-\begin{minipage}{0.45\textwidth}
-\begin{center}
- Andre Kuhlenschmidt \\
- Deyaaeldeen Almahallawi \\
-\ \\
-Dynamic Languages \\ Symposium  \\
-October 2017 \\
-\ \\
-\end{center}
-\end{minipage}
-&
-\begin{minipage}{0.25\textwidth}
-\includegraphics[height=1.1in]{deyaa}
-\end{minipage}
-\end{tabular}
-
 }
 %===============================================================================
 \frame{
@@ -266,8 +256,8 @@ October 2017 \\
 \frametitle{Efficient gradual typing}
 
 \begin{itemize}
-\item Background on Gradual Typing
 \item Challenges to Efficiency
+\item Challenges to Evaluation
 \item Space-efficient Coercions
 \item Monotonic Coercions
 \item Performance Comparison
@@ -275,153 +265,153 @@ October 2017 \\
 
 }
 %===============================================================================
-\frame[containsverbatim]{
-\frametitle{Gradual typing includes dynamic typing}
-An untyped program:
-\[
-\begin{stack}
-~~~~\rd{\begin{stack}
-    \kw{let} \\
-    ~~~~ f = \lam{y} \kw{1} + y \\
-    ~~~~ h = \lam{g} g \app 3 \\
-    \kw{in} \\
-    ~~~~ h \app f
-    \end{stack}} \\
-\longrightarrow \\
-~~~~\rd{\kw{4}}
-\end{stack}
-\]
-}
-%===============================================================================
-\frame[containsverbatim]{
-\frametitle{Gradual typing includes dynamic typing}
+% \frame[containsverbatim]{
+% \frametitle{Gradual typing includes dynamic typing}
+% An untyped program:
+% \[
+% \begin{stack}
+% ~~~~\rd{\begin{stack}
+%     \kw{let} \\
+%     ~~~~ f = \lam{y} \kw{1} + y \\
+%     ~~~~ h = \lam{g} g \app 3 \\
+%     \kw{in} \\
+%     ~~~~ h \app f
+%     \end{stack}} \\
+% \longrightarrow \\
+% ~~~~\rd{\kw{4}}
+% \end{stack}
+% \]
+% }
+% %===============================================================================
+% \frame[containsverbatim]{
+% \frametitle{Gradual typing includes dynamic typing}
 
-A buggy untyped program:
-\[
-\begin{stack}
-~~~~\rd{\begin{stack}
-    \kw{let} \\
-    ~~~~ f = \lam{y} \kw{1} + y \\
-    ~~~~ h = \lam{g} g \app \Rbox{$\kw{true}$} \\
-    \kw{in} \\
-    ~~~~ h \app f
-    \end{stack}} \\
-\longrightarrow \\
-~~~~\blame{\rd{\ell_2}}
-\end{stack}
-\]
+% A buggy untyped program:
+% \[
+% \begin{stack}
+% ~~~~\rd{\begin{stack}
+%     \kw{let} \\
+%     ~~~~ f = \lam{y} \kw{1} + y \\
+%     ~~~~ h = \lam{g} g \app \Rbox{$\kw{true}$} \\
+%     \kw{in} \\
+%     ~~~~ h \app f
+%     \end{stack}} \\
+% \longrightarrow \\
+% ~~~~\blame{\rd{\ell_2}}
+% \end{stack}
+% \]
 
-Just like dynamic typing, the error is caught at run time.
+% Just like dynamic typing, the error is caught at run time.
 
-}
-%===============================================================================
-\frame[containsverbatim]{
-\frametitle{Gradual typing includes static typing}
+% }
+% %===============================================================================
+% \frame[containsverbatim]{
+% \frametitle{Gradual typing includes static typing}
 
-A typed program:
-\[
-\begin{stack}
-\bl{
-~~~~\begin{stack}
-    \kw{let} \\
-    ~~~~ f = \lam{y\of\Int} \kw{1} + y \\
-    ~~~~ h = \lam{g\of\Int{\to}\Int} g \app \kw{3} \\
-    \kw{in} \\
-    ~~~~ h \app f
-    \end{stack}} \\
-\longrightarrow \\
-~~~~\bl{\kw{4}}
-\end{stack}
-\]
+% A typed program:
+% \[
+% \begin{stack}
+% \bl{
+% ~~~~\begin{stack}
+%     \kw{let} \\
+%     ~~~~ f = \lam{y\of\Int} \kw{1} + y \\
+%     ~~~~ h = \lam{g\of\Int{\to}\Int} g \app \kw{3} \\
+%     \kw{in} \\
+%     ~~~~ h \app f
+%     \end{stack}} \\
+% \longrightarrow \\
+% ~~~~\bl{\kw{4}}
+% \end{stack}
+% \]
 
-}
-%===============================================================================
-\frame[containsverbatim]{
-\frametitle{Gradual typing includes static typing}
+% }
+% %===============================================================================
+% \frame[containsverbatim]{
+% \frametitle{Gradual typing includes static typing}
 
-An ill-typed program:
-\[
-\bl{
-\begin{stack}
-~~~~\begin{stack}
-    \kw{let} \\
-    ~~~~ f = \lam{y\of\Int} \kw{1} + y \\
-    ~~~~ h = \lam{g\of\Int{\to}\Int} g \app \Rbox{$\kw{true}$} \\
-    \kw{in} \\
-    ~~~~ h \app f
-    \end{stack} 
-\end{stack}
-}
-\]
-Just like static typing, the error is caught at compile time.
+% An ill-typed program:
+% \[
+% \bl{
+% \begin{stack}
+% ~~~~\begin{stack}
+%     \kw{let} \\
+%     ~~~~ f = \lam{y\of\Int} \kw{1} + y \\
+%     ~~~~ h = \lam{g\of\Int{\to}\Int} g \app \Rbox{$\kw{true}$} \\
+%     \kw{in} \\
+%     ~~~~ h \app f
+%     \end{stack} 
+% \end{stack}
+% }
+% \]
+% Just like static typing, the error is caught at compile time.
 
-}
-%===============================================================================
-\frame[containsverbatim]{
-\frametitle{Gradual typing provides fine-grained mixing}
-A partially typed program:
-\[
-\begin{stack}
-\bl{
-~~~~\begin{stack}
-    \kw{let} \\
-    ~~~~ f = \lam{y\of\Int} \kw{1} + y \\
-    ~~~~ \rd{h = \lam{g} g \app 3} \\
-    \kw{in} \\
-    ~~~~ \rd{h} \app f
-    \end{stack}} \\
-\longrightarrow \\
-~~~~\bl{4}
-\end{stack}
-\]
-}
-%===============================================================================
-\frame[containsverbatim]{
-\frametitle{Gradual typing protects type invariants}
-A buggy, partially typed program:
-\[
-\begin{stack}
-\bl{
-~~~~\begin{stack}
-    \kw{let} \\
-    ~~~~ f = \lam{y\of \Gbox{$\Int$}} \kw{1} + y \\
-    ~~~~ \rd{h = \lam{g} g \app \Rbox{$\kw{true}$}} \\
-    \kw{in} \\
-    ~~~~ \rd{h} \app f
-    \end{stack}} \\
-\longrightarrow \\
-~~~~\blame{\rd{\ell_3}}
-\end{stack}
-\]
-The error is caught at runtime when the value is cast to an
-inconsistent type.
+% }
+% %===============================================================================
+% \frame[containsverbatim]{
+% \frametitle{Gradual typing provides fine-grained mixing}
+% A partially typed program:
+% \[
+% \begin{stack}
+% \bl{
+% ~~~~\begin{stack}
+%     \kw{let} \\
+%     ~~~~ f = \lam{y\of\Int} \kw{1} + y \\
+%     ~~~~ \rd{h = \lam{g} g \app 3} \\
+%     \kw{in} \\
+%     ~~~~ \rd{h} \app f
+%     \end{stack}} \\
+% \longrightarrow \\
+% ~~~~\bl{4}
+% \end{stack}
+% \]
+% }
+% %===============================================================================
+% \frame[containsverbatim]{
+% \frametitle{Gradual typing protects type invariants}
+% A buggy, partially typed program:
+% \[
+% \begin{stack}
+% \bl{
+% ~~~~\begin{stack}
+%     \kw{let} \\
+%     ~~~~ f = \lam{y\of \Gbox{$\Int$}} \kw{1} + y \\
+%     ~~~~ \rd{h = \lam{g} g \app \Rbox{$\kw{true}$}} \\
+%     \kw{in} \\
+%     ~~~~ \rd{h} \app f
+%     \end{stack}} \\
+% \longrightarrow \\
+% ~~~~\blame{\rd{\ell_3}}
+% \end{stack}
+% \]
+% The error is caught at runtime when the value is cast to an
+% inconsistent type.
 
-}
-%===============================================================================
-\frame{
-\frametitle{Gradual typing enables migration}
+% }
+% %===============================================================================
+% \frame{
+% \frametitle{Gradual typing enables migration}
 
-\[
-P(T_1,T_2) \equiv 
-~~~~ \begin{stack}
-     \kw{let} \\
-     ~~~~ f = \lam{y\of T_1} \kw{1}+y \\
-     ~~~~ h = \lam{g\of T_2} g \app \kw{3} \\ 
-     \kw{in} \\
-     ~~~~ h \app f
-     \end{stack}
-\]
+% \[
+% P(T_1,T_2) \equiv 
+% ~~~~ \begin{stack}
+%      \kw{let} \\
+%      ~~~~ f = \lam{y\of T_1} \kw{1}+y \\
+%      ~~~~ h = \lam{g\of T_2} g \app \kw{3} \\ 
+%      \kw{in} \\
+%      ~~~~ h \app f
+%      \end{stack}
+% \]
 
-\begin{center}
-\xymatrix@=10pt{
-  & \rd{P(\dyn,\dyn)} \ar@{-}[dl] \ar@{-}[d] \ar@{-}[dr]\ar@{-}[drr]\\
-  \pr{P(\dyn,\Int\tu\Int)} \ar@{-}[d] & \pr{P(\Int,\dyn)} \ar@{-}[dl]& \pr{P(\Bool,\dyn)} & \pr{P(\dyn,\Int\tu\Bool)}  \\
-   \bl{P(\Int,\Int\tu\Int)}
-} \ \\
-``Configuration Lattice''
-\end{center}
+% \begin{center}
+% \xymatrix@=10pt{
+%   & \rd{P(\dyn,\dyn)} \ar@{-}[dl] \ar@{-}[d] \ar@{-}[dr]\ar@{-}[drr]\\
+%   \pr{P(\dyn,\Int\tu\Int)} \ar@{-}[d] & \pr{P(\Int,\dyn)} \ar@{-}[dl]& \pr{P(\Bool,\dyn)} & \pr{P(\dyn,\Int\tu\Bool)}  \\
+%    \bl{P(\Int,\Int\tu\Int)}
+% } \ \\
+% ``Configuration Lattice''
+% \end{center}
 
-}
+% }
 %===============================================================================
 %% \frame{
 %% \frametitle{Why support static typing?}
@@ -609,63 +599,63 @@ P(T_1,T_2) \equiv
 
 %% }
 %===============================================================================
-\frame{
-\frametitle{Gradual type systems}
+% \frame{
+% \frametitle{Gradual type systems}
 
-The \textbf{consistency} relation governs implicit casts involving $\dyn$.
-\begin{itemize}
-\item For nominal type systems \\
-  Anderson and Drossopoulou, WOOD 2003.
-  \[
-    T_1 \consis T_2 \text{ iff }
-         T_1 = T_2 \text{ or } T_1=\dyn \text{ or } T_2 = \dyn
-  \]
-\item For structural type systems \\
-  Siek and Taha, SFP 2006.
-\begin{gather*}
-  \inference{}{T \consis \dyn} \qquad
-  \inference{}{\dyn \consis T} \qquad
-  \Int \consis \Int
-  \\[2ex]
-  \inference{T_1 \consis T_3 & T_2 \consis T_4}
-            {T_1 \tu T_2 \consis T_3 \tu T_4}
-\end{gather*}
-\end{itemize}
-Consistency is symmetric but not transitive.
+% The \textbf{consistency} relation governs implicit casts involving $\dyn$.
+% \begin{itemize}
+% \item For nominal type systems \\
+%   Anderson and Drossopoulou, WOOD 2003.
+%   \[
+%     T_1 \consis T_2 \text{ iff }
+%          T_1 = T_2 \text{ or } T_1=\dyn \text{ or } T_2 = \dyn
+%   \]
+% \item For structural type systems \\
+%   Siek and Taha, SFP 2006.
+% \begin{gather*}
+%   \inference{}{T \consis \dyn} \qquad
+%   \inference{}{\dyn \consis T} \qquad
+%   \Int \consis \Int
+%   \\[2ex]
+%   \inference{T_1 \consis T_3 & T_2 \consis T_4}
+%             {T_1 \tu T_2 \consis T_3 \tu T_4}
+% \end{gather*}
+% \end{itemize}
+% Consistency is symmetric but not transitive.
 
-}
-%===============================================================================
-\frame{
-\frametitle{1. Replace equality with consitency \\ 
-    2. Add rules for the unknown type $\dyn$}
+% }
+% %===============================================================================
+% \frame{
+% \frametitle{1. Replace equality with consitency \\ 
+%     2. Add rules for the unknown type $\dyn$}
 
-\vspace{10pt}
+% \vspace{10pt}
 
-Typing rules for functions:
-\begin{align*}
-\inference{\Gamma,x:T \vdash e : T'}
-          {\Gamma \vdash (\lambda x{:}T. e) : T \to T'}
-\quad
-\inference{\Gamma \vdash e_1 : T \tu T' & \Gamma \vdash e_2 : T}
-          {\Gamma \vdash e_1 \app e_2 : T'}
-\end{align*}
+% Typing rules for functions:
+% \begin{align*}
+% \inference{\Gamma,x:T \vdash e : T'}
+%           {\Gamma \vdash (\lambda x{:}T. e) : T \to T'}
+% \quad
+% \inference{\Gamma \vdash e_1 : T \tu T' & \Gamma \vdash e_2 : T}
+%           {\Gamma \vdash e_1 \app e_2 : T'}
+% \end{align*}
 
-\vspace{10pt}
+% \vspace{10pt}
 
-Gradual typing rules for functions:
-\begin{gather*}
-\inference{\Gamma,x:T \vdash e : T'}
-          {\Gamma \vdash (\lambda x{:}T. e) : T \to T'}
-\\[2ex]
-\inference{\Gamma \vdash e_1 : T \tu T' & \Gamma \vdash e_2 : T_2 \\
-          \Gbox{$T \consis T_2$}}
-          {\Gamma \vdash e_1 \app e_2 : T'}
-\quad
-\inference{\Gamma \vdash e_1 : \Gbox{$\dyn$} & \Gamma \vdash e_2 : T_2}
-          {\Gamma \vdash e_1 \app e_2 : \Gbox{$\dyn$}}
-\end{gather*}
+% Gradual typing rules for functions:
+% \begin{gather*}
+% \inference{\Gamma,x:T \vdash e : T'}
+%           {\Gamma \vdash (\lambda x{:}T. e) : T \to T'}
+% \\[2ex]
+% \inference{\Gamma \vdash e_1 : T \tu T' & \Gamma \vdash e_2 : T_2 \\
+%           \Gbox{$T \consis T_2$}}
+%           {\Gamma \vdash e_1 \app e_2 : T'}
+% \quad
+% \inference{\Gamma \vdash e_1 : \Gbox{$\dyn$} & \Gamma \vdash e_2 : T_2}
+%           {\Gamma \vdash e_1 \app e_2 : \Gbox{$\dyn$}}
+% \end{gather*}
 
-}
+% }
 %===============================================================================
 %% \frame{
 %% \frametitle{Exercise: Pairs}
@@ -720,36 +710,34 @@ Gradual typing rules for functions:
 
 %% }
 %===============================================================================
-\frame{
-\frametitle{Protecting the static from the dynamic}
+% \frame{
+% \frametitle{Protecting the static from the dynamic}
 
-\vspace{5pt}
+% \vspace{5pt}
 
-Recall the following buggy, partially typed program:
-\[
-\bl{
-\begin{stack}
-  \kw{let} \\
-  ~~~~ f = \lam{y:\Int} \kw{1} + y \\
-  ~~~~ \rd{h = \lam{g} g \app \Rbox{$\kw{true}$}} \\
-  \kw{in} \\
-  ~~~~ \rd{h} \app f
-\end{stack}} 
-\]
+% Consider the following buggy, partially typed program:
+% \[
+% \bl{
+%   \begin{stack}
+%     (\kw{let}\ ((f\ (\lam{(y : \kw{Int})} (+ \kw{1}\ y))) \\
+%     ~~~~~~~~~~(g\ (\lam{g} (g\ \Rbox{$\kw{true}$}))))\\
+%     ~~(\rd{h}\ f)) \\
+% \end{stack}} 
+% \]
 
-The untyped code tries to pass the Boolean $\rd{\kw{true}}$ \\ to
-parameter $y$ of type $\bl{\Int}$.
+% The untyped code tries to pass the Boolean $\rd{\kw{true}}$ \\ to
+% parameter $y$ of type $\bl{\Int}$.
 
-\vspace{5pt}
+% \vspace{5pt}
 
-Alternative ways to deal with this:
-\begin{itemize}
-\item erase types, 
-\item insert casts, or
-\item limit interoperability.
-\end{itemize}
+% Alternative ways to deal with this:
+% \begin{itemize}
+% \item erase types, 
+% \item insert casts, or
+% \item limit interoperability.
+% \end{itemize}
 
-}
+% }
 %===============================================================================
 \frame{
 \frametitle{There is tension in the design space}
@@ -773,54 +761,54 @@ limit interop. & \featY & \featY & \featP
 
 }
 %===============================================================================
-\frame{
-\frametitle{Approach: limit interoperability}
+% \frame{
+% \frametitle{Approach: limit interoperability}
 
-A number of proposed designs place restrictions on passing values
-between static and dynamic regions.
-\begin{itemize}
-\item Siek and Taha. SFP 2006. (wrt. mutable references)
-\item Wrigstad et al. POPL 2010.
-\item Allende et al. OOPSLA 2014.
-\item Swamy et al. POPL 2014.
-\end{itemize}
+% A number of proposed designs place restrictions on passing values
+% between static and dynamic regions.
+% \begin{itemize}
+% \item Siek and Taha. SFP 2006. (wrt. mutable references)
+% \item Wrigstad et al. POPL 2010.
+% \item Allende et al. OOPSLA 2014.
+% \item Swamy et al. POPL 2014.
+% \end{itemize}
 
-\vspace{10pt}
+% \vspace{10pt}
 
-It's debatable whether these designs support gradual typing.
+% It's debatable whether these designs support gradual typing.
 
-\vspace{10pt}
+% \vspace{10pt}
 
-In particular, they do not satisfy the \textit{gradual guarantee}.
-(\textit{Refined Criteria for Gradual Typing.}  Siek et al. SNAPL
-2015.)
+% In particular, they do not satisfy the \textit{gradual guarantee}.
+% (\textit{Refined Criteria for Gradual Typing.}  Siek et al. SNAPL
+% 2015.)
 
-}
+% }
 %===============================================================================
-\frame{
-\frametitle{Approach: insert casts}
+% \frame{
+% \frametitle{Approach: insert casts}
 
-\xymatrix@=20pt{
-   \txt{Coercive Subtyping \\ 
-        Breazu-Tannen et al. 1989} \ar[d]\ar[dr] \\
-   \txt{Quasi-static Typing  \\ 
-        Thatte 1990} \ar[r]\ar[d]
-   &
-   \txt{Coercions \\
-        Henglein 1992} \ar[d]\ar[dl]
-   \\
-   \txt{$\dyn \leftrightarrow T$ \\ 
-        Siek \& Taha 2006, \\ Gronski et al. 2006} 
-   &
-   \txt{Scheme $\leftrightarrow$ ML \\ 
-        Matthews \& Findler 2006} \ar[d]
-   \\
-   &
-   \txt{Scheme $\leftrightarrow$ Typed Scheme\\ 
-      Tobin-Hochstadt \& Felleisen. 2006.}
-}
+% \xymatrix@=20pt{
+%    \txt{Coercive Subtyping \\ 
+%         Breazu-Tannen et al. 1989} \ar[d]\ar[dr] \\
+%    \txt{Quasi-static Typing  \\ 
+%         Thatte 1990} \ar[r]\ar[d]
+%    &
+%    \txt{Coercions \\
+%         Henglein 1992} \ar[d]\ar[dl]
+%    \\
+%    \txt{$\dyn \leftrightarrow T$ \\ 
+%         Siek \& Taha 2006, \\ Gronski et al. 2006} 
+%    &
+%    \txt{Scheme $\leftrightarrow$ ML \\ 
+%         Matthews \& Findler 2006} \ar[d]
+%    \\
+%    &
+%    \txt{Scheme $\leftrightarrow$ Typed Scheme\\ 
+%       Tobin-Hochstadt \& Felleisen. 2006.}
+% }
 
-}
+% }
 %===============================================================================
 \frame{
 \frametitle{Approach: insert casts}
@@ -889,16 +877,14 @@ $\dagger \; \text{if } T \consis I, T \neq I, \text{ and } T \neq \dyn$
 }
 %===============================================================================
 \frame{
-\frametitle{The Buggy Example Revisited}
+\frametitle{Example}
 
 \[
 \begin{stack}
 \begin{stack}
-  \kw{let} \\
-  ~~~~ f = \lam{y\of\Int} \kw{1} + y \\
-  ~~~~ h = \lam{g\of\dyn} (g : \dyn \cast{} \dyn\tu\dyn) \app (\kw{true} : \Bool \cast{} \dyn)\\
-  \kw{in} \\
-  ~~~~ h \app (f : \Int\tu\Int \cast{} \dyn)
+  (\kw{let}\ ((f\ (\lam{(y : \kw{Int})} (+ \kw{1}\ y))) \\
+    ~~~~~~~~~~(g\ (\lam{(g : \dyn)} (g : \dyn \cast{} \dyn\tu\dyn\ (\kw{true} : \Bool \cast{} \dyn))))\\
+    ~~(\rd{h}\ (f : \Int\tu\Int \cast{} \dyn))) \\
 \end{stack} \\
 \reduce^{*} \\
 \rd{(}f : \Int\tu\Int \cast{} \dyn\tu\dyn\rd{)}
@@ -1284,30 +1270,21 @@ $\dagger \; \text{if } T \consis I, T \neq I, \text{ and } T \neq \dyn$
 %% }
 %===============================================================================
 \frame{
-\frametitle{Efficient gradual typing}
-
-\begin{itemize}
-\item Background on Gradual Typing
-\item \textbf{Challenges to Efficiency}
-\item Space-efficient Coercions
-\item Monotonic Coercions
-\item Performance Comparison
-\end{itemize}
-
-}
-%===============================================================================
-\frame{
 \frametitle{Casts can consume unbounded space}
 
 \[
 \begin{stack}
-\Letrec \mathit{even}(n \of \Int) : \rd{\dyn} = \\
-~~~~ \If n = 0 \Then \True\\
-~~~ \Else \mathit{odd}(n - 1) \\
-\\
-\Letrec \mathit{odd}(n \of \Int) : \Bool = \\
-~~~~ \If n = 0 \Then \False\\
-~~~ \Else \mathit{even}(n - 1) 
+(\text{letrec}\ ((\mathit{even}\ \lam{(n : \Int) : \rd{\dyn}}\
+(\text{if}\ (=\ n\ \kw{0})\\
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\text{\#t}\\
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~(\mathit{odd}\ (-\ n\
+\kw{1}))))\\
+~~~~~~~~~~~~~~(\mathit{odd}\ \lam{(n : \Int) : \Bool}\
+(\text{if}\ (=\ n\ \kw{0})\\
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\text{\#f}\\
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~(\mathit{even}\ (-\ n\
+\kw{1})))))\\
+~~(\mathit{even}\ ...))
 \end{stack}
 \]
 
@@ -1321,13 +1298,16 @@ $\dagger \; \text{if } T \consis I, T \neq I, \text{ and } T \neq \dyn$
 
 \[
 \begin{stack}
-\Letrec \mathit{even}(n \of \Int) : \rd{\dyn} = \\
-~~~~ \If n = 0 \Then (\True : \rd{ \Bool \cast{} \dyn}) \\
-~~~ \Else (\mathit{odd}(n - 1) : \rd{ \Bool \cast{} \dyn})\\
-\\
-\Letrec \mathit{odd}(n \of \Int) : \Bool = \\
-~~~~ \If n = 0 \Then \False \\
-~~~ \Else (\mathit{even}(n - 1) : \rd{ \dyn \cast{} \Bool}) 
+(\text{letrec}\ ((\mathit{even}\ \lam{(n : \Int) : \rd{\dyn}}\
+(\text{if}\ (=\ n\ \kw{0})\\
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~(\text{\#t} : \rd{ \Bool \cast{} \dyn})\\
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~(\mathit{odd}\ (-\ n\ \kw{1}) : \rd{ \Bool \cast{} \dyn})))\\
+~~~~~~~~~~~~~~(\mathit{odd}\ \lam{(n : \Int) : \Bool}\
+(\text{if}\ (=\ n\ \kw{0})\\
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\text{\#f}\\
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~(\mathit{even}\ (-\
+n\ \kw{1}) : \rd{ \dyn \cast{} \Bool}))))\\
+~~(\mathit{even}\ ...))\\
 \end{stack}
 \]
 
@@ -1368,40 +1348,140 @@ $\dagger \; \text{if } T \consis I, T \neq I, \text{ and } T \neq \dyn$
   Takikawa et al. POPL 2016}
 
 }
+
+
+%===============================================================================
+\begin{frame}[fragile]
+\frametitle{Casts can cause catastrophic slowdowns}
+
+\begin{center}
+\begin{lstlisting}
+(define sort!
+  : ((Vectorof Dyn) Int Int -> ())
+  (lambda ([v : (Vectorof Int)]
+       [lo : Int][hi : Int])
+    (when (< lo hi)
+      (let ([pivot : Int (partition! v lo hi)])
+        (sort! v lo (- pivot 1))
+        (sort! v (+ pivot 1) hi)))))
+\end{lstlisting}
+\end{center}
+
+\end{frame}
+
 %===============================================================================
 \frame{
-  \frametitle{Grift: an experimental compiler}
-\begin{itemize}
-\item An ahead-of-time compiler for gradual typing.
+\frametitle{Casts can cause catastrophic slowdowns}
 
-\item The input is a minimal functional language, output is C
-  (e.g. no continuations).
+\begin{center}
+\includegraphics[width=3.5in]{plots/space/quicksort/Type-Based_Casts/poly3fitting.png} \\
+\end{center}
 
-\item Benchmarking to-date is limited due to amount of language
-  support.
-
-\item The compiler specializes casts when their source and/or target
-  type is known at compile time.
-
-\item The runtime system implements \textbf{coercions} and
-  \textbf{monotonic references}.
-
-\end{itemize}
 }
-%===============================================================================
+% ===============================================================================
+\frame{
+\frametitle{Casts can cause catastrophic slowdowns}
+
+\begin{center}
+\includegraphics[width=3.5in]{plots/space/quicksort/Type-Based_Casts/casts.png} \\
+\end{center}
+
+}
+% ===============================================================================
+\frame{
+\frametitle{Casts can cause long proxy chains}
+
+\begin{center}
+\includegraphics[width=3.5in]{plots/space/quicksort/Type-Based_Casts/lpc.png} \\
+\end{center}
+
+}
+
+% ===============================================================================
 \frame{
 \frametitle{Efficient gradual typing}
 
 \begin{itemize}
-\item Background on Gradual Typing
 \item Challenges to Efficiency
+\item \textbf{Challenges to Evaluation}
+\item Space-efficient Coercions
+\item Monotonic Coercions
+\item Performance Comparison
+\end{itemize}
+
+}
+
+% ===============================================================================
+\frame{
+\frametitle{Challenges to Performance Evaluation}
+
+\begin{itemize}
+\item Takikawa et al. POPL 2016 proposes to run all the combinations of
+  making each module typed or untyped. There are $2^n$
+  configurations for a program that consists of $n$ modules.
+  \item This should work for most benchmarks where $n$ is relatively
+    small.
+    \pause
+  \item But what if the language supports fine-grained gradual
+    typing, where the programmer may opt to not write some type
+    annotations or put Dyn inside some?
+    \pause
+  \item The size of the configuration space for a textbook quicksort is
+    248832000000. For n-body, it is
+    6914086267191872901144038355222134784.
+\end{itemize}
+
+}
+
+%===============================================================================
+\frame{
+\frametitle{Grift: an experimental compiler}
+\begin{itemize}
+\item An ahead-of-time optimizing compiler for gradual typing.
+\item The source is a functional language with tuples and mutable
+  vectors and references, and the target is C.
+\item The runtime system implements \textbf{coercions} and
+  \textbf{monotonic references}.
+\item The compiler specializes casts when their source and/or target
+  type is known at compile time.
+\item The compiler defers coercion creation until it is actually needed.
+\end{itemize}
+}
+
+% ===============================================================================
+
+\frame{
+\frametitle{Grift Performance Evaluation}
+
+\begin{itemize}
+\item a number of configurations are sampled from across the spectrum of
+  type precision.
+\item Grift is compared on partially typed code to a variant of Grift
+  where it is statically typed and does not support gradual typing
+  (Static Grift) and to Grift on fully untyped code (Dynamic Grift)
+\item Grift is compared on fully typed benchmarks to fully typed
+  languages.
+\item Grift is compared on fully untyped benchmarks to dynamically typed
+  languages.
+\end{itemize}
+
+}
+% ===============================================================================
+
+\frame{
+\frametitle{Efficient gradual typing}
+
+\begin{itemize}
+\item Challenges to Efficiency
+\item Challenges to Evaluation
 \item \textbf{Space-efficient Coercions}
 \item Monotonic Coercions
 \item Performance Comparison
 \end{itemize}
 
 }
-%===============================================================================
+% ===============================================================================
+
 \frame{
 \frametitle{Compress casts via coercion reduction}
 
@@ -1420,9 +1500,6 @@ $\dagger \; \text{if } T \consis I, T \neq I, \text{ and } T \neq \dyn$
 \mathit{odd}(0) \rd{\CAST{\pl{\Bool}}}
 \end{stack}
 \]
-
-
-
 
 }
 %===============================================================================
@@ -1534,21 +1611,58 @@ c;\Fail{\ell} & \longrightarrow \Fail{\ell} &
 \frame{
 \frametitle{Coercions eliminate catastrophic slowdowns}
 
-\includegraphics[width=4in]{plots/casts-or-coercions/quicksort_Proxied_Specialized.png}
+\includegraphics[width=4in]{plots/space/quicksort/Coercions/poly2fitting.png}
 
+}
+% ===============================================================================
+\frame{
+\frametitle{Coercions eliminate catastrophic slowdowns}
+
+\includegraphics[width=4in]{plots/space/quicksort/casts.png}
+
+}
+% ===============================================================================
+\frame{
+\frametitle{Coercions eliminate catastrophic slowdowns}
+
+\includegraphics[width=4in]{plots/space/quicksort/lpc.png}
+
+}
+% ===============================================================================
+\frame{
+\frametitle{Coercions eliminate catastrophic slowdowns}
+
+\includegraphics[width=4in]{plots/casts-or-coercions/quicksort/rt.png}
+\begin{itemize}
+  \item mean speedup of $\kw{13}$ and max speedup of $\kw{1756}$
+\end{itemize}
 }
 %===============================================================================
 \frame{
 \frametitle{Coercions sometimes incur overhead}
 
-\includegraphics[width=4in]{plots/casts-or-coercions/lin_fft_Proxied_Specialized.png}
+\includegraphics[width=4in]{plots/casts-or-coercions/fft/rt.png}
+\begin{itemize}
+  \item mean slowdown of $\kw{1.1}$ and max slowdown of $\kw{1.6}$
+\end{itemize}
 
 }
 %===============================================================================
 \frame{
 \frametitle{Coercions sometimes pay for themselves}
 
-\includegraphics[width=4in]{plots/casts-or-coercions/lin_n_body_Proxied_Specialized.png}
+\includegraphics[width=4in]{plots/casts-or-coercions/n_body/rt.png}
+\begin{itemize}
+  \item mean speedup of $\kw{1.9}$ and max speedup of $\kw{28}$
+\end{itemize}
+
+}
+% ===============================================================================
+
+\frame{
+\frametitle{Coercions sometimes pay for themselves}
+
+\includegraphics[width=4in]{plots/casts-or-coercions/n_body/lpc.png}
 
 }
 %===============================================================================
@@ -1556,8 +1670,8 @@ c;\Fail{\ell} & \longrightarrow \Fail{\ell} &
 \frametitle{Efficient gradual typing}
 
 \begin{itemize}
-\item Background on Gradual Typing
 \item Challenges to Efficiency
+\item Challenges to Evaluation
 \item Space-efficient Coercions
 \item \textbf{Monotonic Coercions}
 \item Performance Comparison
@@ -1570,7 +1684,8 @@ c;\Fail{\ell} & \longrightarrow \Fail{\ell} &
 \vspace{5pt}
 \begin{align*}
   T & ::= \cdots \mid \Ref T \\
-  e & ::= \cdots \mid \alloc e \mid \deref^\ell e \mid e \update^\ell e 
+  e & ::= \cdots \mid \alloc e \mid \deref^\ell e \mid e \update^\ell e \\
+  v & ::= \cdots \mid a \mid a \CAST{\Ref (c,d)}
 \end{align*}
 Consistency \hfill \fbox{$T \sim T$}
 \[
@@ -1810,16 +1925,31 @@ Compile-time choice:
 %% }
 %===============================================================================
 \frame{
+\frametitle{Monotonic implementation}
+
+\begin{itemize}
+\item hashconsing types at runtime to speedup the meet operation
+\item casted tuple values are just copies of the original tuples written
+  to the heap and updated in place while the cast is in progress.
+\end{itemize}
+
+}
+%===============================================================================
+\frame{
 \frametitle{Monotonic eliminates overhead in static code}
 
-\includegraphics[width=4in]{plots/monotonic-v-coercions/lin_matmult_Coercions_Specialized_Lazy.png}
+\includegraphics[width=4in]{plots/monotonic-v-coercions/n_body/rt.png}
+
+\begin{itemize}
+  \item mean speedup of 1.26 and max speedup of 3.24
+\end{itemize}
 
 }
 %===============================================================================
 \frame{
 \frametitle{Montonic doesn't matter for some programs}
 
-\includegraphics[width=4in]{plots/monotonic-v-coercions/lin_blackscholes_Coercions_Specialized_Lazy.png}
+\includegraphics[width=4in]{plots/monotonic-v-coercions/blackscholes/rt.png}
 
 }
 %===============================================================================
@@ -1827,8 +1957,8 @@ Compile-time choice:
 \frametitle{Efficient gradual typing}
 
 \begin{itemize}
-\item Background on Gradual Typing
 \item Challenges to Efficiency
+\item Challenges to Evaluation
 \item Space-efficient Coercions
 \item Monotonic Coercions
 \item \textbf{Performance Comparison}
@@ -1915,7 +2045,6 @@ Compile-time choice:
 
 \begin{itemize}
 \item Gradual typing can be efficient!
-  \footnote{Caveat: on the 8 benchmarks we have working so far.}
 \item On dynamically typed code: competative with Gambit.
 \item On statically typed code: competative with OCaml.
 \item On partially typed code, performance varies roughly between \%50
@@ -1925,6 +2054,17 @@ Compile-time choice:
 \item Use \textbf{monotonic references} to reduce overhead in
   statically typed code.
 \end{itemize}
+
+
+}
+
+%===============================================================================
+\frame{
+\frametitle{}
+
+\center{Grift is open source: github.com/Gradual-Typing/Grift}
+\vspace{0.7in}
+\center{\Large Thank you!}
 
 
 }
