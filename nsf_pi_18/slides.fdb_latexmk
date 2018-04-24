@@ -1,5 +1,5 @@
 # Fdb version 3
-["pdflatex"] 1524509660 "slides.tex" "slides.pdf" "slides" 1524509664
+["pdflatex"] 1524509660 "slides.tex" "slides.pdf" "slides" 1524570574
   "/usr/local/texlive/2017/texmf-dist/fonts/enc/dvips/base/8r.enc" 1480098666 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "/usr/local/texlive/2017/texmf-dist/fonts/enc/dvips/cm-super/cm-super-t1.enc" 1480098666 2971 def0b6c1f0b107b3b936def894055589 ""
   "/usr/local/texlive/2017/texmf-dist/fonts/map/fontname/texfonts.map" 1480098670 3287 e6b82fe08f5336d4d5ebc73fb1152e87 ""
@@ -306,10 +306,10 @@
   "yinyang.png" 1524025582 3829 1ea9f3b01a753a9968cd130d6f417088 ""
   (generated)
   "slides.vrb"
-  "slides.toc"
-  "slides.nav"
-  "slides.snm"
-  "slides.log"
   "slides.aux"
+  "slides.log"
+  "slides.nav"
   "slides.pdf"
   "slides.out"
+  "slides.snm"
+  "slides.toc"
