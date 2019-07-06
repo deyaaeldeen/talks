@@ -1,0 +1,18 @@
+ray,Specialized Lazy Proxied Coercions,0.21
+sieve,Specialized Lazy Proxied Coercions,0.36
+n_body,Specialized Lazy Proxied Coercions,0.71
+tak,Specialized Lazy Proxied Coercions,1.32
+blackscholes,Specialized Lazy Proxied Coercions,1.48
+quicksort,Specialized Lazy Proxied Coercions,1.53
+matmult,Specialized Lazy Proxied Coercions,1.60
+fft,Specialized Lazy Proxied Coercions,2.08
+array,Specialized Lazy Proxied Coercions,2.29
+ray,Specialized Eager Proxied Type-Based Casts,0.21
+sieve,Specialized Eager Proxied Type-Based Casts,0.37
+n_body,Specialized Eager Proxied Type-Based Casts,0.68
+tak,Specialized Eager Proxied Type-Based Casts,1.29
+quicksort,Specialized Eager Proxied Type-Based Casts,1.37
+blackscholes,Specialized Eager Proxied Type-Based Casts,1.48
+array,Specialized Eager Proxied Type-Based Casts,1.52
+matmult,Specialized Eager Proxied Type-Based Casts,1.71
+fft,Specialized Eager Proxied Type-Based Casts,2.02
