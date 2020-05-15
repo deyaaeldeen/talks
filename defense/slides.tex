@@ -1,0 +1,960 @@
+\documentclass[12pt,dvipsnames]{beamer}
+\geometry{paper=a6paper,landscape}
+
+\usetheme{default}% I recommend
+\usepackage[utf8]{inputenc}
+\usepackage{utopia}
+\usecolortheme{seahorse}
+% \or\usetheme{Singapore}
+% \or\usetheme{Boadilla}
+% \or\usetheme{Pittsburgh}
+% \or\usetheme{Madrid}
+% \or\usetheme{Warsaw} % common choice, but often poor
+% \fi
+
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{semantic}
+\usepackage{graphicx,pgfplots,parskip}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{microtype}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{ifthen}
+\newcommand\hmmax{0} % default 3
+% \newcommand\bmmax{0} % default 4
+% \usepackage{bm}
+\usepackage{stmaryrd}
+\usepackage{proof}
+\usepackage{graphicx}
+\usepackage[export]{adjustbox}
+\usepackage{listings}
+\usepackage{tikz}
+\usepackage{semantic}
+\usepackage{setspace}
+\usepackage{wrapfig}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{esvect}
+\usepackage{tikz}
+\usepackage{booktabs} %% http://ctan.org/pkg/booktabs
+\usepackage{wasysym}
+\usepackage{array,multirow}
+\usepackage{balance}
+\usepackage{minted}
+\usemintedstyle{tango}
+\usepackage[backend=bibtex, style=authoryear-comp]{biblatex}
+%%%%%%%%%%%%%%%%%%%%% MACROS %%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\definecolor{lightgray}{gray}{0.9}
+%\newcommand{\highlight}[1]{\colorbox{lightgray}{$\displaystyle #1$}}
+\newcommand{\hi}[1]{\colorbox{lightgray}{$\displaystyle #1$}}
+
+\newcommand{\tagsc}[1]{\tag{\textsc{#1}}}
+\newcommand{\newname}[2]{\newcommand{#1}{\ensuremath{#2}}}
+
+\newcommand{\overbar}[1]{\mkern 1.5mu\overline{\mkern-1.5mu#1\mkern-1.5mu}\mkern 1.5mu}
+
+\newcommand{\size}{size}
+\newcommand{\cast}{\Rightarrow}
+\newcommand{\CoercionTyping}{\Longrightarrow}
+\newcommand{\castE}[4][]{\ensuremathc{#2 : #3 \Rightarrow^{#1} #4}}
+
+\newcommand{\key}[1]{\texttt{#1}}
+
+% Types
+\newcommand{\UnitT}{\ensuremath{\mathsf{()}}}
+\newcommand{\IntT}{\ensuremath{\mathsf{Int}}}
+\newcommand{\BoolT}{\ensuremath{\mathsf{Bool}}}
+\newcommand{\DynT}{\ensuremath{\mathsf{\star}}}
+\newcommand{\RefT}[1]{\ensuremath{\mathsf{Ref}\ #1}}
+\newcommand{\RefPT}[1]{\ensuremath{\mathsf{Ref}\ #1}}
+%\newcommand{\RefMT}[1]{\ensuremath{\mathsf{Ref}_m #1}}
+\newcommand{\FunT}[2]{\ensuremath{#1 \to #2}}
+\newcommand{\CFunT}[3]{\ensuremath{(\overbar{#1},#2) \cast #3}}
+\newcommand{\PairT}[2]{\ensuremath{#1 \times #2}}
+\newcommand{\Unit}{\ensuremath{\text{Unit}}}
+\newcommand{\CClosT}[2]{\ensuremath{#1 \to #2}}
+\newcommand{\CoT}[2]{\ensuremath{#1 \Longrightarrow #2}}
+
+\newcommand{\IntC}{\ensuremath{\mathtt{Int}}}
+\newcommand{\BoolC}{\ensuremath{\mathtt{Bool}}}
+\newcommand{\DynC}{\ensuremath{\mathtt{Dyn}}}
+\newcommand{\RefC}[1]{\ensuremath{\mathtt{Ref}\ #1}}
+
+% Relations
+
+\newcommand{\TypePreciseness}{\sqsubseteq}
+\newcommand{\ExprTypePreciseness}{\sqsubseteq}
+\newcommand{\StoreTypePreciseness}{\sqsubseteq_p}
+\newcommand{\StoreTypeExtension}{\sqsubseteq_e}
+\newcommand{\StoreTypeProgress}{\sqsubseteq_{p/e}}
+\newcommand{\static}{\Rbag}
+\newcommand{\ShallowConsist}{\small\smile}
+
+% Coercions
+\newcommand{\idC}{\ensuremath{\mathtt{\iota}}}
+\newcommand{\InjectCoercion}[1]{\ensuremath{#1!}}
+\newcommand{\seqInjC}[2]{\ensuremath{\seqC{#1}{\InjectCoercion{#2}}}}
+\newcommand{\ProjectCoercion}[1]{\ensuremath{#1?}}
+\newcommand{\seqPrjC}[2]{\ensuremath{\seqC{\ProjectCoercion{#1}}{#2}}}
+\newcommand{\FunctionCoercion}[2]{\ensuremath{#1 \to #2}}
+\newcommand{\RefCoercion}[1]{\ensuremath{\mathsf{Ref}\ #1}}
+\newcommand{\seqC}[2]{\ensuremath{#1 \, ; \, #2}}
+\newcommand{\FailCoercion}[2]{\ensuremath{\bot^{#1,#2}}}
+\newcommand{\FailCoercionSE}{\ensuremath{\bot}}
+\newcommand{\PairCoercion}[2]{\ensuremath{#1 \times #2}}
+
+\newcommand{\coercion}[1]{\ensuremath{\langle #1 \rangle}}
+\newcommand{\coerce}[2]{\ensuremath{#1 \coercion{#2}}}
+\newcommand{\coerced}[2]{\ensuremath{\coerce{#1}{#2}}}
+\newcommand{\app}[2]{\ensuremath{#1 \, #2}}
+\newcommand{\lam}[2]{\ensuremath{\lambda #1 .\, #2}}
+\newcommand{\blame}[1]{\ensuremath{\mathtt{blame}\, #1}}
+\newcommand{\mkRef}[1]{\ensuremath{\mathtt{ref}\ #1}}
+\newcommand{\allocT}[2]{\ensuremath{\mathtt{ref}\ #1 @ #2}}
+\newcommand{\alloc}[1]{\allocT{#1}{\AllTa}}
+\newcommand{\deref}[1]{\ensuremath{\mathtt{!} #1}}
+\newcommand{\derefT}[1]{\ensuremath{\mathtt{!} #1 @ \AllTa}}
+\newcommand{\DerefT}[2]{\ensuremath{\mathtt{!} #1 @ #2}}
+\newcommand{\setref}[2]{\ensuremath{#1\ {:=}\ #2}}
+\newcommand{\setrefT}[2]{\ensuremath{#1\ {:=}\ #2 @ \AllTa}}
+\newcommand{\SetrefT}[3]{\ensuremath{#1\ {:=}\ #2 @ #3}}
+\newcommand{\error}{\ensuremath{\mathtt{error}}}
+\newcommand{\Error}{\ensuremath{\mathtt{Err}}}
+\newcommand{\dom}[1]{\ensuremath{\text{dom}(#1)}}
+\newcommand{\pair}[2]{\ensuremath{(#1,#2)}}
+\newcommand{\fst}[1]{\ensuremath{(\mathtt{fst}\, #1)}}
+\newcommand{\snd}[1]{\ensuremath{(\mathtt{snd}\, #1)}}
+
+\newcommand{\glbt}{\sqcap}
+
+\newcommand{\var}[1][x]{\ensuremath{#1}}
+\newcommand{\expr}[1][e]{\ensuremath{#1}}
+\newcommand{\const}{\ensuremath{k}}
+
+\newcommand{\uncoerced}{\ensuremath{u}}
+\newcommand{\val}{\ensuremath{v}}
+\newcommand{\DelayedCastA}{\ensuremath{dc}}
+\newcommand{\DelayedCastB}{\ensuremath{dc'}}
+\newcommand{\DelayedCastC}{\ensuremath{dc''}}
+\newcommand{\ReducibleDelayedCast}{\ensuremath{dc^{+}}}
+
+\newcommand{\hole}{\ensuremath{\square}}
+\newcommand{\context}[2]{\ensuremath{ #1 [ #2 ] }}
+
+\newcommand{\InertCoercion}[1]{\ensuremath{#1\uparrow}}
+\newcommand{\InertCoercionA}{\InertCoercion{\seCa}}
+\newcommand{\InertCoercionB}{\InertCoercion{\seCb}}
+\newcommand{\InertFinalCoercion}{\ensuremath{\seFinalC\uparrow}}
+\newcommand{\InertMiddleCoercion}{\ensuremath{\seInterC\uparrow}}
+\newcommand{\ActiveCoercion}[1]{\ensuremath{#1\downarrow}}
+\newcommand{\ActiveCoercionA}{\ActiveCoercion{\seCa}}
+\newcommand{\ActiveCoercionB}{\ActiveCoercion{\seCb}}
+\newcommand{\ActiveFinalCoercion}{\ensuremath{\seFinalC\downarrow}}
+\newcommand{\ActiveMiddleCoercion}{\ensuremath{\seInterC\downarrow}}
+
+\newcommand{\CastCong}{\varphi}
+\newcommand{\AllowCastCong}{\top}
+\newcommand{\DisallowCastCong}{\bot}
+\newcommand{\PureSymbol}{\obslash}
+\newcommand{\ImpureSymbol}{\ocircle}
+\newcommand{\PureCastReduce}{\longrightarrow_{c}^{\PureSymbol}}
+% \newcommand{\PureCastDelayedCastReduce}{\longrightarrow_{dc}^{\PureSymbol}}
+\newcommand{\PureCastDelayedCastReduce}{\longrightarrow}
+\newcommand{\MonoCastReduce}{\longrightarrow_{c}^{\ImpureSymbol}}
+\newcommand{\CastReduce}{\longrightarrow_{c}}
+\newcommand{\DelayedCastReduce}{\longrightarrow_{dc}}
+\newcommand{\PureReduce}{\longrightarrow_{e}^{\PureSymbol}}
+\newcommand{\MonoReduce}{\longrightarrow_{e}^{\ImpureSymbol}}
+\newcommand{\ProgReduce}{\longrightarrow_{e}}
+\newcommand{\Lang}{\ensuremath{\textsc{GTLC}^{+}}}
+
+% Meta Variables
+\newname{\BaseT}{B}
+\newname{\InjTa}{I}
+\newname{\InjTb}{J}
+\newname{\AllTa}{T}
+\newname{\AllTb}{S}
+\newname{\topC}{c}
+\newname{\noFailC}{r}
+\newname{\blameLabel}{p}
+\newname{\addr}{a}
+\newname{\seCa}{c}
+\newname{\seCb}{d}
+\newname{\ca}{c}
+\newname{\cb}{d}
+\newname{\seFinalC}{i}
+\newname{\seInterC}{g}
+\newname{\seIdFreeC}{f}
+\newname{\CoercionT}{\mathcal{C}}
+\newname{\expra}{M}
+\newname{\exprb}{N}
+\newname{\ctag}{w}
+\newname{\uctag}{uc}
+\newname{\cctag}{cc}
+
+% Functions
+\newcommand{\ComposeCoercion}{\fatsemi}
+\newcommand{\ComposeMiddleCoercion}{\ensuremath{\fatsemi_{\text{\tiny g}}}}
+\newcommand{\ComposeFinalCoercion}{\ensuremath{\fatsemi_i}}
+\newcommand{\mkC}[2]{\ensuremath{ #1 \Rightarrow #2 }}
+
+\newcommand{\jdgt}[2]{\ensuremath{\Gamma\vdash #1:#2}}
+\newcommand{\ctit}[3]{\ensuremath{\Gamma\vdash #1 \hookrightarrow #2:#3}}
+\newcommand{\mkCrcn}[2]{\ensuremath{\langle #1 \Longrightarrow #2
+    \rangle}}
+
+% Heaps
+\newcommand{\store}{\ensuremath{\mu}}
+\newcommand{\evstore}{\ensuremath{\nu}}
+\newcommand{\storecell}[1]{\ensuremath{\addr \mapsto #1}}
+\newcommand{\mstorecell}[2]{\ensuremath{\addr \mapsto #1 : #2}}
+\newcommand{\StoreCell}[3]{\ensuremath{#1 \mapsto #2 : #3}}
+\newcommand{\StoreValRead}{\ensuremath{\store(\addr)_{\text{val}}}}
+\newcommand{\StoreRTTIRead}{\ensuremath{\store(\addr)_{\text{rtti}}}}
+\newcommand{\EvStoreValRead}{\ensuremath{\evstore(\addr)_{\text{val}}}}
+\newcommand{\EvStoreRTTIRead}{\ensuremath{\evstore(\addr)_{\text{rtti}}}}
+
+\newcommand{\EvolvingStoreRTTIRead}[2]{\ensuremath{#1(#2)_{\text{rtti}}}}
+
+
+\DeclareCiteCommand{\citeseries}
+  {\usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+    \printfield{series}}
+  {\multicitedelim}
+  {\usebibmacro{postnote}}
+
+\addbibresource{all.bib}
+
+\newcommand{\customcite}[1]{\citeauthor{#1}, \citetitle{#1},
+  \citeseries{#1} \citeyear{#1}}
+
+\newcommand{\customcitewithoutseries}[1]{\citeauthor{#1},
+  \citetitle{#1}, \citeyear{#1}}
+
+\lstdefinestyle{basic}{
+%showstringspaces=false,
+language=Python,
+columns=fullflexible,
+%basicstyle=\sffamily\small,%
+basicstyle=\ttfamily,%
+%columns=fixed,
+%basewidth=0.49em,
+%lineskip=0pt,
+%escapechar=@,xleftmargin=1pc,%
+keywordstyle=\ttfamily,
+mathescape=true,%
+moredelim=**[is][\color{blue}]{@}{@},
+moredelim=[is][\color{red}]{|}{|},
+moredelim=[is][\color{blue}]{~}{~},
+%commentstyle=\rmfamily,%
+%morekeywords={return,fix,var,proc,fun,func},%
+%deletekeywords={int,bool}
+}
+\lstset{style=basic}
+
+\newcommand{\lstsetgrift}{
+  \lstset{%
+    language=Lisp,
+    numbers=left,
+    stepnumber=1,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\ttfamily\bfseries\small,
+    columns=flexible,
+    aboveskip=\smallskipamount,
+    belowskip=\smallskipamount,
+    xleftmargin=2pt,
+    escapeinside={/+}{+/},
+    mathescape=true,
+    morekeywords=[1]{define,lambda,if,begin,letrec,let,let*,values,:,repeat,then,else,return,and,time,box,ref,unbox,box,ann},
+    literate=
+    {+}{{\textsf{+}}}1
+    {-}{{\textsf{-}}}1
+    {=>}{{$\rightarrow\;$}}2
+    {lambda}{{$\boldsymbol{\lambda}$}}1
+  }
+}%%
+
+\newcounter{stuff}
+\newtheorem{prop}[stuff]{Proposition}
+
+\title %optional
+{Towards Efficient Gradual Typing}
+ 
+\subtitle{via Monotonic References and Coercions}
+ 
+\author[Almahallawi] % (optional, for multiple authors)
+{Deyaaeldeen Almahallawi}
+ 
+\institute[IU] % (optional)
+{
+  \inst{}%
+  Doctor of Philosophy\\
+  Luddy School of Informatics, Computing, and Engineering\\
+  Indiana University Bloomington
+}
+ 
+\date[May 2020] % (optional)
+{May 2020}
+
+\begin{document}
+\author[Almahallawi]{\begin{tabular}{r@{ }l} 
+Author:      & Deyaaeldeen Almahallawi \\[1ex] 
+Adviser: & Jeremy G. Siek
+\end{tabular}}
+\begin{frame}
+\maketitle
+\end{frame}
+
+\begin{frame}{Outline}
+\tableofcontents
+\end{frame}
+
+\section{Overview}
+
+\begin{frame}{Outline}
+  \tableofcontents[currentsection]
+\end{frame}
+
+\frame{
+\frametitle{Gradual Typing}
+
+\hspace{0.5in}
+\begin{minipage}{0.7\textwidth}
+  \center{\includegraphics[scale=.7]{yinyang.png}}
+\end{minipage}
+
+}
+
+\begin{frame}[fragile]
+\frametitle{Examples Of Gradual Typing}
+\note{Gradual typing has two compelling features: soundness and interoperability}
+\begin{center}
+\note{Regarding soundness, programmers, compilers, and IDEs would like
+  to trust their type annotations}
+  \lstset {
+    showstringspaces=false
+  }
+\begin{lstlisting}
+(define r : (Ref Int) (box 42))
+\end{lstlisting}
+\note{this expression should be accepted}
+\pause
+\begin{lstlisting}
+(+ 1 (unbox r))
+\end{lstlisting}
+\note{this expression should be rejected}
+\pause
+\begin{lstlisting}
+(string-append (unbox r) " is forty two")
+\end{lstlisting}
+\pause
+\note{in the absence of type annotations, casts should make sure other
+  annotations are respected}
+\begin{lstlisting}
+(define (g y) (set-box! r y))
+\end{lstlisting}
+\pause
+\begin{lstlisting}
+(g 1)
+(g "forty two")
+\end{lstlisting}
+\end{center}
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Examples Of Gradual Typing (Cont'd)}
+\note{Gradual typing has two compelling features: soundness and interoperability}
+\begin{center}
+  \lstset {
+    showstringspaces=false
+  }
+\begin{lstlisting}
+(define r1 (box 42))
+(define r2 (box "forty two"))
+\end{lstlisting}
+\pause
+\begin{lstlisting}
+(define (f [x : (Ref Int)]) (+ 1 (unbox x)))
+\end{lstlisting}
+\pause
+\begin{lstlisting}
+(f r1)
+\end{lstlisting}
+\pause
+\begin{lstlisting}
+(f r2)
+\end{lstlisting}
+\end{center}
+
+\end{frame}
+
+\begin{frame}{Problem Statement And Objective}
+  \begin{enumerate}
+  \item Problem Statement:
+  \begin{center}
+    Although a lot of programmers and companies use gradually typed
+    languages to write programs that is widely deployed, efficiency is a
+    serious concern. The standard operational semantics for the
+    Gradually Typed Lambda Calculus can exhibit unbounded space leaks
+    and overheads occur even in statically typed programs.
+  \end{center}
+\item Objective:
+  \begin{center}
+    Design efficient operational semantics for gradually typed mutable
+    references and vectors that could be implemented by a compiler.
+  \end{center}
+  \end{enumerate}
+\end{frame}
+
+% \section{Efficiency Challenges}
+
+% \begin{frame}{Outline}
+%   \tableofcontents[currentsection]
+% \end{frame}
+
+\begin{frame}[fragile]{Chains of Proxies}
+    \begin{center}
+    \includegraphics[scale=0.14]{quicksort.png}
+  \end{center}
+  % \begin{itemize}
+  % \item Soundness requires performing type checking at runtime.
+  % \item Type checking for higher-order values create proxies that does
+  %   checking at use sites.
+  % \item A chain of proxies could be created if the same value crosses
+  %   multiple boundaries.
+  % \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Dynamic Dispatch in Statically-typed Code}
+
+\begin{lstlisting}
+(define (partition [a : (Vect Int)] [p : Int] [r : Int]) : Int
+    (let ([i (- p 1)]
+           [x |(vector-ref a r)|])
+      (repeat (j p r)
+                (if (<= |(vector-ref a j)| x)
+                    (begin
+                      (set! i (+ i 1))
+                      (swap a i j))
+                    ()))
+        (swap a (+ i 1) r)
+        (+ i 1)))
+(define (swap [a : (Vect Int)] [i : Int] [j : Int]) : Unit
+    (if (= i j)
+        ()
+        (let ([t |(vector-ref a i)|])
+          |(vector-set! a i (vector-ref a j))|
+          |(vector-set! a j t)|)))
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{Solved?}
+  \begin{center}
+  \begin{tabular}{|c|cc|}
+    \hline
+    Problem/Feature & Functions & References \\
+    \hline
+    Chains of Proxies & \checkmark & \checkmark \\
+    Dynamic Dispatch & \checkmark & \checkmark \\
+    \hline
+  \end{tabular}
+\end{center}
+\pause But, how to combine and implement them?
+\end{frame}
+
+\begin{frame}[fragile]{Solutions}
+  \begin{center}
+  \begin{tabular}{|c|cc|}
+    \hline
+    Problem/Feature & Functions & References \\
+    \hline
+    Chains of Proxies & Coercions\footnote[frame]{\customcite{Siek:2015ab}} & Monotonic\footnote[frame]{\customcite{Siek:2015aa}}/Coercions \\
+    Dynamic Dispatch & Closure extension\footnote[frame]{\customcite{Siek:2012uq}} & Monotonic \\
+    \hline
+  \end{tabular}
+\end{center}
+\end{frame}
+
+\begin{frame}[fragile]{Combination of Solutions}
+  \begin{center}
+  \begin{tabular}{|c|cc|}
+    \hline
+    Problem/Feature & Functions & References \\
+    \hline
+    Chains of Proxies & \textcolor{blue}{Coercions} & \textcolor{blue}{Monotonic}/Coercions \\
+    Dynamic Dispatch & Closure extension & \textcolor{blue}{Monotonic} \\
+    \hline
+  \end{tabular}
+\end{center}
+\end{frame}
+
+\begin{frame}{Research Questions}
+  \begin{enumerate}
+  \item How to integrate monotonic references into a space-efficient
+    coercion calculus? (Section 5.4)\pause
+  \item How to implement monotonic references in a way that only
+      puts values in the heap? (Section 5.2) \pause
+  \item What is the time cost of achieving space efficiency with
+      coercions? (Section 8.2) % (Section~\ref{sec:cost-space-efficiency})\label{RQ:cost-space}
+    \pause
+  \item What is the overhead of gradual typing?
+    % (Sec.~\ref{sec:external-comparison})
+    I subdivide this question into the overheads on programs that are (a)
+    statically typed, (b) untyped, and (c) partially
+    typed. (Section 8.3) % \label{RQ:overhead}\label{RQ:static}\label{RQ:dyn}\label{RQ:partial}
+    \pause
+  \item Do monotonic references eliminate overheads associated with
+    gradual typing from statically typed code? (Section 8.5)
+    % (Section~\ref{sec:efficient-static})\label{RQ:efficient-static}
+    \pause
+  \item What is the overhead of using monotonic references in partially
+    typed code? (Section 8.6)
+    % (Section~\ref{sec:cost-efficient-static})\label{RQ:cost-efficient-static}
+  \end{enumerate}
+\end{frame}
+
+\section{Literature Review}
+
+\begin{frame}{Outline}
+  \tableofcontents[currentsection]
+\end{frame}
+
+\begin{frame}{History of Integration of Static Typing and Dynamic
+    Typing}
+  \begin{enumerate}
+  \item \customcite{Thatte:1990yv}
+  \item A nominal type system for an object-oriented language with
+    optional type annotations - \customcite{Anderson:2002kd}
+  \item Migratory typing - \customcite{Tobin-Hochstadt:2006fk}
+  \item Hybrid typing - \customcite{Gronski:2006uq}
+  \item Operational semantics specification of a multi-language system -
+    \customcite{Matthews:2007zr}
+  \item Gradual typing for structural types - \customcite{Siek:2006bh}
+  % \item Contracts for Higher-Order Functions \customcite{Findler:2002eu}
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}{Reviewing Coercions}
+  \begin{enumerate}
+  \item Designed by Henglien for compile-time optimization of dynamic
+    typing - \customcite{Henglein:1994nz}
+  \item Repurposed to solve the space leak problem in gradual typing -
+    \customcite{Herman:2006uq}
+  \item Algorithmic composition - \customcite{Siek:2015ab}
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}{Reviewing Performance Studies}
+  \begin{enumerate}
+  \item \customcite{Takikawa:2016aa}
+  \item \customcite{Rastogi:2015aa}
+  \item \customcite{Richards:2017aa}
+  \item \customcite{Bauman:2017aa}
+  \item \customcite{Muehlboeck:2017aa}
+  \item \customcite{Feltey:2018aa}
+  \item \customcite{10.1145/3359619.3359742}
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}{Reviewing Monotonic References}
+  \begin{center}
+    \begin{itemize}
+    \item First introduced as an abstract machine in
+      \customcite{Siek:2013aa} (Section 3)
+    \item Reintroduced as reduction semantics by
+      \customcite{Siek:2015aa} (A variant is presented in Section 4) %\footnote[frame]{\customcite{Siek:2015aa}}
+    \item Values are just addresses.
+    \item $\forall \addr.\ s.t.\ \addr : \RefT{\AllTa}$, 
+      $\Sigma(\addr) \TypePreciseness \AllTa$
+    \item Stores expressions on the heap!
+    \end{itemize}
+    \vspace{0.5cm}
+    \includegraphics[scale=0.25]{rule.png}
+  \end{center}
+\end{frame}
+
+% \begin{frame}[fragile]{Reviewing Monotonic References (Cont'd)}
+%   \lstset {
+%     numbers=left,
+%     stepnumber=1
+%   }
+% \centering
+% \begin{center}
+% \begin{minted}
+% [
+% framesep=2mm,
+% baselinestretch=1.2,
+% bgcolor=lightgray,
+% fontsize=\footnotesize,
+% linenos,
+% escapeinside=||
+% ,mathescape=true
+% ]
+% {racket}
+% (: f Dyn)
+% (define f (lambda (x) x))
+% (: r Dyn)
+% (define r (box (cons f '())))
+% (set-box! r (cons f r)) ;; establish a cycle
+% (define (g [x : (Boxof (Pair (Dyn -> Integer)
+%                              (Boxof (Pair (Integer -> Dyn)
+%                                           Dyn))))])
+%   ((car (unbox x)) 42))
+% (g r)
+% \end{minted}
+% \end{center}
+% \end{frame}
+
+% \begin{frame}[fragile]{Old Work Writes Expressions to The Heap}
+%   \begin{center}
+%     Heap has
+%     $a \mapsto \pair{\coerced{(\lambda x. x)}{\FunT{\DynT}{\DynT}
+%         \cast \DynT}}{\coerced{a}{\RefT{(\PairT{\DynT}{\DynT})} \cast
+%         \DynT}}$
+%     \\
+%     \pause
+%     \vspace{0.5cm}
+%     $\addr$ should be cast to $\PairT{(\FunT{\DynT}{\IntT})}{\RefT{ (\PairT{
+%           (\FunT{\IntT}{\DynT}) }{ \DynT }) }}$
+%     \\
+%     \pause
+%     \vspace{0.5cm}
+%     {\huge{$\longrightarrow^{*}$}}
+%     \[
+%       a \mapsto
+%       \left\langle
+%         \begin{array}{l}
+%           {\coerced{\textcolor{RoyalPurple}{\coerced{(\lambda x. x)}{\FunT{\DynT}{\DynT} \cast \DynT}}}{\textcolor{Magenta}{\DynT \cast
+%           (\FunT{\DynT}{\IntT})}}}, \\
+%           {\coerced{\textcolor{RoyalPurple}{\coerced{a}{\RefT{(\PairT{\DynT}{\DynT})} \cast \DynT}}}{\textcolor{Magenta}{\DynT \cast
+%           \RefT{(\PairT{(\FunT{\IntT}{\DynT})}{\DynT}})}}} 
+%         \end{array}
+%       \right\rangle
+%     \]
+%     \\
+%     \pause
+%     \vspace{0.5cm}
+%     {\huge{$\longrightarrow^{*}$}}
+%     \[
+%       a \mapsto
+%       \left\langle
+%         \begin{array}{l}
+%           \textcolor{RoyalPurple}{\coerced{(\lambda x. x)}{\FunT{\DynT}{\DynT} \cast \FunT{\DynT}{\IntT}}}, \\
+%           \coerced{\textcolor{RoyalPurple}{\coerced{a}{\RefT{(\PairT{\DynT}{\DynT})} \cast \DynT}}}{\textcolor{Magenta}{\DynT \cast
+%           \RefT{(\PairT{(\FunT{\IntT}{\DynT})}{\DynT})}}}
+%         \end{array}
+%       \right\rangle
+%     \]
+%     \\
+%     \pause
+%     \vspace{0.5cm}
+%     Type of the heap cell should be $\PairT{ (\FunT{\IntT}{\IntT}) }{ \RefT{(\PairT{(\FunT{\IntT}{\DynT})}{\DynT})} }$
+%   \end{center}
+% \end{frame}
+
+% \begin{frame}[fragile]{Old Work Writes Expressions to The Heap (Cont'd)}
+%   \begin{center}
+%     \[
+%       a \mapsto
+%       \left\langle
+%         \begin{array}{l}
+%           \textcolor{RoyalPurple}{\coerced{(\lambda x. x)}{\FunT{\DynT}{\DynT} \cast \FunT{\DynT}{\IntT}}}, \\
+%           \coerced{\textcolor{RoyalPurple}{\coerced{a}{\RefT{(\PairT{\DynT}{\DynT})} \cast \DynT}}}{\textcolor{Magenta}{\DynT \cast
+%           \RefT{(\PairT{(\FunT{\IntT}{\DynT})}{\DynT})}}}
+%         \end{array}
+%       \right\rangle
+%     \]
+%     \\
+%     \vspace{0.5cm}
+%     Type of the heap should be $\PairT{ (\FunT{\IntT}{\IntT}) }{
+%       \RefT{(\PairT{(\FunT{\IntT}{\DynT})}{\DynT})} }$
+%     \\
+%     \pause
+%     \vspace{0.5cm}
+%     Eventually,
+%     \[
+%       a \mapsto
+%       \textcolor{RoyalPurple}{\left\langle
+%           \begin{array}{l}
+%             \coerced{\coerced{(\lambda x. x)}{\FunT{\DynT}{\DynT} \cast \FunT{\DynT}{\IntT}}}{ \FunT{\DynT}{\IntT} \cast \FunT{\IntT}{\IntT}}, \\
+%             a
+%           \end{array}
+%         \right\rangle}
+%     \]
+%   \end{center}
+% \pause How could this behavior be implemented efficiently in a runtime system?
+% \end{frame}
+
+\section{Methodology}
+
+\begin{frame}{Outline}
+  \tableofcontents[currentsection]
+\end{frame}
+
+\begin{frame}{Outline}
+  \begin{itemize}
+  \item designed dynamic operational semantics for monotonic references
+    that is space-efficient for functions and easy to implement in a
+    compiler.
+  \item implemented it as part of ahead-of-time compiler for gradually
+    typed language.
+  \item evaluated the performance on a suite of widely-used benchmarks.
+    % \begin{itemize}
+    %   \item measured the overhead of proxied references in static code.
+    %   \item compared monotonic against Static Grift on static benchmarks
+    %     to confirm the elimination of overheads in static code.
+    %   \item compared monotonic against proxied on mixed typed code.
+    %   \item compared coercions vs type-based casts on mixed typed code.
+    %   \item compared Grift against dynamically typed languages on untyped code.
+    %   \item compared Grift against statically typed languages on static code.
+    % \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Answer to Q1: Normal-form Monotonic Coercion}
+\begin{gather*}
+  \inference{\AllTa \TypePreciseness \AllTa_2}{\RefCoercion{\AllTa} : \RefT{\AllTa_1} \Longrightarrow
+    \RefT{\AllTa_2}}
+\end{gather*}
+\\
+\[
+    \begin{array}{rcl}
+      \RefCoercion{\AllTa}\ \ComposeCoercion\ \RefCoercion{\AllTa'}
+                                        & = &
+                                              \RefCoercion{(\AllTa \glbt
+                                              \AllTa')} \qquad \text{if } \AllTa \sim
+                                              \AllTa'  \\
+      \RefCoercion{\AllTa}\ \ComposeCoercion\ \RefCoercion{\AllTa'}
+                                        & = &
+                                              \FailCoercionSE
+                                              \qquad\qquad\qquad \text{ if } \AllTa \not\sim
+                                              \AllTa'
+    \end{array}
+  \]
+
+\begin{prop}{Coercion composition height is bounded}
+  \begin{center}
+    $\| \seCa \ComposeCoercion \seCb\| \leq \max (\| \seCa \|, \| \seCb
+    \|)$
+  \end{center}
+\end{prop}
+\end{frame}
+
+\begin{frame}[fragile]{Answer to Q2: Practical Dynamic Semantics}
+  \begin{center}
+% \begin{minted}
+% [
+% framesep=2mm,
+% baselinestretch=1.2,
+% bgcolor=lightgray,
+% fontsize=\footnotesize,
+% linenos,
+% escapeinside=||
+% ,mathescape=true
+% ]
+% {racket}
+% (while (mref-cast-queue-not-empty?)
+%           (let* ([address (mref-cast-queue-peek-address)]
+%                  [t1 (Mbox-rtti-read address)]                 
+%                  [t2 (mref-cast-queue-peek-type)]
+%                  [t3 (greatest-lower-bound t1 t2)])
+%             (mref-cast-queue-dequeue)
+%             (when (not (= t1 t3))
+%                    (let ([vi (Mbox-val-read address)]
+%                          [cvi (apply-cast vi t1 t3 #f)])
+%                      (Mbox-rtti-set! address t3)
+%                      (Mbox-val-set! address cvi)))))
+% \end{minted}
+\begin{minted}
+[
+framesep=2mm,
+fontsize=\footnotesize,
+baselinestretch=1.2,
+bgcolor=lightgray,
+fontsize=\footnotesize,
+linenos,
+escapeinside=||
+,mathescape=true
+]
+{C}
+void apply_suspended_casts() {
+    while (cast_queue_is_not_empty(ref_cq)) {
+        int64_t * addr = cast_queue_peek_address(ref_cq);
+        int64_t rtti1 = addr[0];
+        int64_t ty = cast_queue_peek_type(ref_cq);
+        int64_t rtti2 = greatest_lower_bound(rtti1, ty);
+        cast_queue_dequeue(ref_cq);
+        if (rtti1 != rtti2) {
+            int64_t val1 = addr[1];
+            int64_t val2 = apply_cast(val1, rtti1, rtti2, true);
+            addr[0] = rtti2;
+            addr[1] = val2;
+        }
+    }
+}
+\end{minted}
+\end{center}
+\end{frame}
+
+% \begin{frame}[fragile]{Example of Reduction Using New Dynamic Semantics}
+%   \begin{center}
+%     The heap is
+%     $a \mapsto \pair{\coerced{(\lambda x. x)}{\FunT{\DynT}{\DynT} \cast
+%         \DynT}}{\coerced{a}{\RefT{(\PairT{\DynT}{\DynT})} \cast \DynT}}$
+%     \\
+%     \vspace{0.5cm}
+%     $\coerced{\addr}{\PairT{(\FunT{\DynT}{\IntT})}{\RefT{(\PairT{(\FunT{\IntT}{\DynT})}{\DynT})}}}\longrightarrow
+%     \ ?$
+%     \\
+%     \pause \vspace{0.5cm}
+
+%     The heap becomes:
+%     $\addr \mapsto \pair{\coerced{\lambda x. x}{\FunT{\DynT}{\DynT}\cast
+%         \FunT{\DynT}{\IntT}}}{\addr}$
+%     and the queue
+%     \begin{tikzpicture}[
+%       scale=0.45,
+%       squarednode/.style={rectangle, draw=green!60, fill=green!5, very thick, minimum size=20mm},
+%       ]
+%       \node[squarednode] at (-1, 1) (cast){$(\addr, \PairT{(\FunT{\IntT}{\DynT})}{\DynT})$};
+%     \end{tikzpicture}
+%     \\
+%     \pause
+%     \vspace{0.5cm}
+%     Eventually, the heap becomes:
+%     $ \addr \mapsto\pair{\coerced{\lambda x. x }{\FunT{\DynT}{\DynT}
+%         \cast\FunT{\IntT}{\IntT}}}{\addr}$
+%   \end{center}
+% \end{frame}
+
+\section{Preliminary Performance Analysis}
+
+\begin{frame}{Outline}
+  \tableofcontents[currentsection]
+\end{frame}
+
+\frame{
+  \frametitle{The Grift Compiler\footnote[frame]{\customcite{Kuhlenschmidt:2019aa}}}
+
+  \begin{itemize}
+  \item An ahead-of-time compiler written in Racket (\~20k LOC).
+  \item The source language GTLC+ includes first-class functions,
+    mutable arrays, recursive types, tuples, integers, and floats.
+  \item Compiles GTLC+ to C and LLVM.
+  \item Implements coercions.
+  \item Values are 64 bits. % Values of type $\DynT$ are tagged.
+  \item Specialize casts if source and target are not $\DynT$.
+  \item Some optimization of function closures (e.g. direct calls).
+  % \item No global optimizations, no type inference or specialization.
+  \item Boehm garbage collector.
+  \end{itemize}
+}
+
+% \begin{frame}{Grift\footnote[frame]{\customcite{Kuhlenschmidt:2019aa}}}
+%   \begin{center}
+%     \includegraphics{grift.jpg}
+%   \end{center}
+% \end{frame}
+
+\begin{frame}{Answer to Q4(a): Grift vs Other Languages on Statically Typed Code}
+  \begin{center}
+    \adjincludegraphics[scale=.25,trim={0 0 0 0},clip]
+                       {old_plots/extremes/Specialized_Lazy_Proxied_Coercions_static.png}
+  \end{center}
+\end{frame}
+
+\begin{frame}{Answer to Q4(b): Grift vs Other Languages on Dynamically Typed Code}
+  \begin{center}
+    \adjincludegraphics[scale=.25,trim={0 0 0 0},clip]
+                    {old_plots/extremes/Specialized_Lazy_Proxied_Coercions_dynamic.png}
+  \end{center}
+\end{frame}
+
+\begin{frame}{Answer to Q3 \& Q4(c): Coercions vs Type-based Casts}
+  \begin{center}
+    \centering\adjincludegraphics[width=7cm, height=8.5cm,trim={0 0 0 {0.011\height}},clip]
+                         {old_plots/fine/Proxied_Specialized/all/quicksort.png}
+  \end{center}
+\end{frame}
+
+\begin{frame}{Answer to Q3 \& Q4(c): Coercions vs Type-based Casts (Cont'd)}
+  \begin{center}
+    \centering\adjincludegraphics[width=7cm, height=8.5cm,trim={0 0 0 {0.011\height}},clip]
+                         {old_plots/fine/Proxied_Specialized/all/n_body.png}
+  \end{center}
+\end{frame}
+
+\begin{frame}{Answer to Q3 \& Q4(c): Coercions vs Type-based Casts (Cont'd)}
+  \begin{center}
+    \centering\adjincludegraphics[width=7cm, height=8.5cm,trim={0 0 0 {0.011\height}},clip]
+                         {old_plots/fine/Proxied_Specialized/all/ray.png}
+  \end{center}
+\end{frame}
+
+\begin{frame}{Answer to Q5: Monotonic vs Proxied References on Statically-typed Code}
+  \begin{center}
+    \adjincludegraphics[scale=.25,trim={0 0 0 0},clip]
+  {new_plots/extremes/Specialized_Lazy_Coercions_static_self.png}
+  \end{center}
+\end{frame}
+
+\begin{frame}{Answer to Q6: Monotonic vs Proxied References on Mixed-typed Code}
+  \begin{center}
+    \includegraphics[scale=0.25]{new_plots/Specialized_UniformClosure_Coercions_Lazy/runtimes/matmult.png}
+  \end{center}
+\end{frame}
+
+\begin{frame}{Answer to Q6: Monotonic vs Proxied References on Mixed-typed Code (Cont'd)}
+  \begin{center}
+    \includegraphics[scale=0.25]{new_plots/Specialized_UniformClosure_Coercions_Lazy/runtimes/blackscholes.png}
+  \end{center}
+\end{frame}
+
+\begin{frame}{Answer to Q6: Monotonic vs Proxied References on Mixed-typed Code (Cont'd)}
+  \begin{center}
+    \adjincludegraphics[scale=.25,trim={0 0 0 0},clip]
+  {new_plots/cumulative.png}
+  \end{center}
+\end{frame}
+
+\begin{frame}{Conclusion}
+  \begin{itemize}
+  \item Proxies cause catastrophic slowdowns in mixed typed code.
+  \item Coercions fixes the issue without introducing significant
+    overheads in the average case.
+  \item Proxies cause overheads in statically typed code regions.
+  \item Monotonic references eliminate these overheads but it was not
+    obvious how to implement prior work in a compiler and runtime
+    system.
+  \item To achieve efficiency in both statically typed and mixed typed
+    code regions, I designed dynamic semantics that is straightforward
+    to implement and uses coercions to guarantee space-efficiency.
+  \item I implemented the new semantics in a compiler in gradually typed
+    languages and showed that it is efficient.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Conclusion}
+  \centering
+  Mechanized Formalism: \url{https://github.com/deyaaeldeen/monotonic}
+  Implementation in Grift: \url{https://github.com/Gradual-Typing/Grift}
+  Benchmarks: \url{https://github.com/Gradual-Typing/benchmarks}
+  Dynamizer: \url{https://github.com/Gradual-Typing/Dynamizer}
+  \\
+  \vspace{1cm}
+  \centering
+  \Huge Thank you!
+\end{frame}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

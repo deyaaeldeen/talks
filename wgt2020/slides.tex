@@ -288,11 +288,11 @@ moredelim=[is][\color{blue}]{~}{~},
 % \subtitle{A short story}
  
 \author[Almahallawi, Siek] % (optional, for multiple authors)
-{Deyaaeldeen Almahallawi\inst{1} \and Jeremy G. Siek\inst{1}}
+{Deyaaeldeen Almahallawi \and Jeremy G. Siek}
  
 \institute[IU] % (optional)
 {
-  \inst{1}%
+  \inst{}%
   Luddy School of Informatics, Computing, and Engineering\\
   Indiana University Bloomington
 }
@@ -306,14 +306,6 @@ moredelim=[is][\color{blue}]{~}{~},
 \maketitle
 \end{frame}
 
-\begin{frame}
-  \begin{center}
-    Or how to eliminate overheads associated with gradual typing from
-    statically-typed code \pause and improve the performance of mixed-typed
-    code via monotonic references and coercions
-  \end{center}
-\end{frame}
-
 \begin{frame}{Outline}
 \tableofcontents
 \end{frame}
@@ -325,24 +317,27 @@ moredelim=[is][\color{blue}]{~}{~},
 \end{frame}
 
 \begin{frame}[fragile]{Chains of Proxies}
-  \begin{itemize}
-  \item Soundness requires performing type checking at runtime.
-  \item Type checking for higher-order values create proxies that does
-    checking at use sites.
-  \item A chain of proxies could be created if the same value crosses
-    multiple boundaries.
-  \end{itemize}
+    \begin{center}
+    \includegraphics[scale=0.14]{plots/quicksort.png}
+  \end{center}
+  % \begin{itemize}
+  % \item Soundness requires performing type checking at runtime.
+  % \item Type checking for higher-order values create proxies that does
+  %   checking at use sites.
+  % \item A chain of proxies could be created if the same value crosses
+  %   multiple boundaries.
+  % \end{itemize}
 \end{frame}
 
-\begin{frame}[fragile]{Dynamic Dispatch for Proxies}
-  \begin{itemize}
-  \item With proxies, use sites have to determine if the incoming value
-    is proxied.
-  \item If the value, is proxied, the checks carried by the proxy have
-    to be performed first before processing the value underneath.
-  \item This dynamic dispatch is performed even in statically-typed code.
-  \end{itemize}
-\end{frame}
+% \begin{frame}[fragile]{Dynamic Dispatch for Proxies}
+%   \begin{itemize}
+%   \item With proxies, use sites have to determine if the incoming value
+%     is proxied.
+%   \item If the value, is proxied, the checks carried by the proxy have
+%     to be performed first before processing the value underneath.
+%   \item This dynamic dispatch is performed even in statically-typed code.
+%   \end{itemize}
+% \end{frame}
 
 % \begin{frame}[fragile]{Dynamic Dispatch For Reference Coercions}
 % \begin{minipage}{.5\textwidth}
@@ -370,30 +365,7 @@ moredelim=[is][\color{blue}]{~}{~},
 %   \end{minipage}
 % \end{frame}
 
-\begin{frame}[fragile]{Example: Quicksort}
-
-\begin{lstlisting}
-(define (partition [a : (Vect Int)] [p : Int] [r : Int]) : Int
-    (let ([i (- p 1)]
-           [x (vector-ref a r)])
-      (repeat (j p r)
-                (if (<= (vector-ref a j) x)
-                    (begin
-                      (set! i (+ i 1))
-                      (swap a i j))
-                    ()))
-        (swap a (+ i 1) r)
-        (+ i 1)))
-(define (swap [a : (Vect Int)] [i : Int] [j : Int]) : Unit
-    (if (= i j)
-        ()
-        (let ([t (vector-ref a i)])
-          (vector-set! a i (vector-ref a j))
-          (vector-set! a j t))))
-\end{lstlisting}
-\end{frame}
-
-\begin{frame}[fragile]{Example: Quicksort with dynamic dispatch highlighted}
+\begin{frame}[fragile]{Dynamic Dispatch in Statically-typed Code}
 
 \begin{lstlisting}
 (define (partition [a : (Vect Int)] [p : Int] [r : Int]) : Int
@@ -403,9 +375,9 @@ moredelim=[is][\color{blue}]{~}{~},
                 (if (<= |(vector-ref a j)| x)
                     (begin
                       (set! i (+ i 1))
-                      |(swap a i j)|)
+                      (swap a i j))
                     ()))
-        |(swap a (+ i 1) r)|
+        (swap a (+ i 1) r)
         (+ i 1)))
 (define (swap [a : (Vect Int)] [i : Int] [j : Int]) : Unit
     (if (= i j)
@@ -436,8 +408,8 @@ moredelim=[is][\color{blue}]{~}{~},
     \hline
     Problem/Feature & Functions & References \\
     \hline
-    Chains of Proxies & Coercions & Monotonic/Coercions \\
-    Dynamic Dispatch & Closure extension & Monotonic \\
+    Chains of Proxies & Coercions\footnote[frame]{\customcite{Siek:2015ab}} & Monotonic\footnote[frame]{\customcite{Siek:2015aa}}/Coercions \\
+    Dynamic Dispatch & Closure extension\footnote[frame]{\customcite{Siek:2012uq}} & Monotonic \\
     \hline
   \end{tabular}
 \end{center}
@@ -467,26 +439,26 @@ moredelim=[is][\color{blue}]{~}{~},
 \end{center}
 \end{frame}
 
-\section{Monotonic References}
+\section{Reviewing Monotonic References}
 
 \begin{frame}{Outline}
   \tableofcontents[currentsection]
 \end{frame}
 
-\begin{frame}{Monotonic
-    References\footnote[frame]{\customcite{Siek:2015aa}}}
+\begin{frame}{Reviewing Monotonic References}
+  \begin{center}
   \begin{itemize}
-  \item values are just addresses.
-  \item $\forall \addr.\ \addr : \RefT{\AllTa}$, such that
+  \item Values are just addresses.
+  \item $\forall \addr.\ s.t.\ \addr : \RefT{\AllTa}$, 
     $\Sigma(\addr) \TypePreciseness \AllTa$
+  \item Stores expressions on the heap!
   \end{itemize}
-  \pause
-\vspace{1cm}
-Type preciseness: $\FunT{\IntT}{\IntT} \TypePreciseness
-\FunT{\DynT}{\IntT} \TypePreciseness \FunT{\DynT}{\DynT} \TypePreciseness \DynT$
+  \vspace{0.5cm}
+  \includegraphics[scale=0.25]{rule.png}
+  \end{center}
 \end{frame}
 
-\begin{frame}[fragile]{Example of a cycle in the heap}
+\begin{frame}[fragile]{Reviewing Monotonic References (Cont'd)}
   \lstset {
     numbers=left,
     stepnumber=1
@@ -518,7 +490,7 @@ escapeinside=||
 \end{center}
 \end{frame}
 
-\begin{frame}[fragile]{Example (Cont'd)}
+\begin{frame}[fragile]{Old Work Writes Expressions to The Heap}
   \begin{center}
     Heap has
     $a \mapsto \pair{\coerced{(\lambda x. x)}{\FunT{\DynT}{\DynT}
@@ -532,7 +504,7 @@ escapeinside=||
     \\
     \pause
     \vspace{0.5cm}
-    After a few steps
+    {\huge{$\longrightarrow^{*}$}}
     \[
       a \mapsto
       \left\langle
@@ -547,7 +519,7 @@ escapeinside=||
     \\
     \pause
     \vspace{0.5cm}
-    After a few steps
+    {\huge{$\longrightarrow^{*}$}}
     \[
       a \mapsto
       \left\langle
@@ -561,11 +533,11 @@ escapeinside=||
     \\
     \pause
     \vspace{0.5cm}
-    RTTI should be $\PairT{ (\FunT{\IntT}{\IntT}) }{ \RefT{(\PairT{(\FunT{\IntT}{\DynT})}{\DynT})} }$
+    Type of the heap cell should be $\PairT{ (\FunT{\IntT}{\IntT}) }{ \RefT{(\PairT{(\FunT{\IntT}{\DynT})}{\DynT})} }$
   \end{center}
 \end{frame}
 
-\begin{frame}[fragile]{Example (Cont'd)}
+\begin{frame}[fragile]{Old Work Writes Expressions to The Heap (Cont'd)}
   \begin{center}
     \[
       a \mapsto
@@ -579,7 +551,7 @@ escapeinside=||
     \]
     \\
     \vspace{0.5cm}
-    RTTI should be $\PairT{ (\FunT{\IntT}{\IntT}) }{
+    Type of the heap should be $\PairT{ (\FunT{\IntT}{\IntT}) }{
       \RefT{(\PairT{(\FunT{\IntT}{\DynT})}{\DynT})} }$
     \\
     \pause
@@ -634,13 +606,58 @@ escapeinside=||
 \end{frame}
 
 \begin{frame}[fragile]{Implementable Dynamic Semantics}
+  \pause
   \begin{center}
-    We would like to design a big-step reduction relation to reduce to
-    values right away, but how would we deal with casts on cyclic
-    addresses? \pause We do not perform casts on inner references and
-    instead collect them on the side.
-    \\
-    \pause
+\begin{minted}
+[
+framesep=2mm,
+fontsize=\footnotesize,
+baselinestretch=1.2,
+bgcolor=lightgray,
+fontsize=\footnotesize,
+linenos,
+escapeinside=||
+,mathescape=true
+]
+{C}
+while (cast_queue_is_not_empty(mref_cast_q)) {
+        u170_address = cast_queue_peek_address(mref_cast_q);
+        u171_t1 = ((int64_t *)u170_address)[((intptr_t)0)];
+        u172_t2 = cast_queue_peek_type(mref_cast_q);
+        u173_t3 = (u4_types_greatest_lower_bound(u171_t1, u172_t2));
+        cast_queue_dequeue(mref_cast_q);
+        if ((u171_t1 == u173_t3)) {
+          u1237_tmp_rco = ((intptr_t)1);
+        } else {
+          u1237_tmp_rco = ((intptr_t)0);
+        };
+        if ((!u1237_tmp_rco)) {
+          u174_vi = ((int64_t *)u170_address)[((intptr_t)1)];
+          u558_init_value = ((intptr_t)1);
+          u559_alloc_id = u856_stack_alloc;
+          ((int64_t *)u559_alloc_id)[((intptr_t)0)] = u558_init_value;
+          u176_ret_id_ = u559_alloc_id;
+          u560_init_value = ((intptr_t)0);
+          u561_alloc_id = u857_stack_alloc;
+          ((int64_t *)u561_alloc_id)[((intptr_t)0)] = u560_init_value;
+          u177_ret_fvs = u561_alloc_id;
+          u1238_tmp_rco = (u7_make_coercion(
+              u171_t1, u173_t3,, u176_ret_id_,
+              u177_ret_fvs));
+          u175_cvi =
+              (u160_apply_coercion(u174_vi, u1238_tmp_rco, ((intptr_t)0)));
+          ((int64_t *)u170_address)[((intptr_t)0)] = u173_t3;
+          ((int64_t *)u170_address)[((intptr_t)1)] = u175_cvi;
+        } else {
+          0;
+        };
+      }
+\end{minted}
+    \end{center}
+\end{frame}
+
+\begin{frame}[fragile]{Implementable Dynamic Semantics}
+  \begin{center}
 \begin{minted}
 [
 framesep=2mm,
@@ -669,23 +686,30 @@ escapeinside=||
 
 \begin{frame}[fragile]{Example of Reduction Using New Dynamic Semantics}
   \begin{center}
-    Recall that we want to cast the address $\addr$ to the type
-    $\PairT{(\FunT{\DynT}{\IntT})}{\RefT{(\PairT{(\FunT{\IntT}{\DynT})}{\DynT})}}$
+    The heap is
+    $a \mapsto \pair{\coerced{(\lambda x. x)}{\FunT{\DynT}{\DynT} \cast
+        \DynT}}{\coerced{a}{\RefT{(\PairT{\DynT}{\DynT})} \cast \DynT}}$
     \\
-    \pause
     \vspace{0.5cm}
-    
-    We proceed by applying the cast right away and put the inner
-    reference cast in the queue, so the heap will be
-    $\addr \mapsto \pair{\coerced{\lambda x. x}{\FunT{\DynT}{\DynT}
-        \cast \FunT{\DynT}{\IntT}}}{\addr}$ and the queue will contain
-    the address $\addr$ with the target type
-    $\PairT{(\FunT{\IntT}{\DynT})}{\DynT}$.
+    $\coerced{\addr}{\PairT{(\FunT{\DynT}{\IntT})}{\RefT{(\PairT{(\FunT{\IntT}{\DynT})}{\DynT})}}}\longrightarrow
+    \ ?$
     \\
-    \pause
-    \vspace{0.5cm}
+    \pause \vspace{0.5cm}
 
-    Apply that cast in the queue will result in the following heap:
+    The heap becomes:
+    $\addr \mapsto \pair{\coerced{\lambda x. x}{\FunT{\DynT}{\DynT}\cast
+        \FunT{\DynT}{\IntT}}}{\addr}$
+    and the queue
+    \begin{tikzpicture}[
+      scale=0.45,
+      squarednode/.style={rectangle, draw=green!60, fill=green!5, very thick, minimum size=20mm},
+      ]
+      \node[squarednode] at (-1, 1) (cast){$(\addr, \PairT{(\FunT{\IntT}{\DynT})}{\DynT})$};
+    \end{tikzpicture}
+    \\
+    \pause
+    \vspace{0.5cm}
+    Eventually, the heap becomes:
     $ \addr \mapsto\pair{\coerced{\lambda x. x }{\FunT{\DynT}{\DynT}
         \cast\FunT{\IntT}{\IntT}}}{\addr}$
   \end{center}
@@ -695,6 +719,12 @@ escapeinside=||
 
 \begin{frame}{Outline}
   \tableofcontents[currentsection]
+\end{frame}
+
+\begin{frame}{Grift\footnote[frame]{\customcite{Kuhlenschmidt:2019aa}}}
+  \begin{center}
+    \includegraphics{grift.jpg}
+  \end{center}
 \end{frame}
 
 \begin{frame}{Monotonic vs Proxied References on Statically-typed Code}
